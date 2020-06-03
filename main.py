@@ -18,7 +18,7 @@ versionID = ""
 # Load up Firefox using Selenium
 wd = webdriver.Firefox()
 
-# Scrape for download URLs
+# Scrape for download IDs and filenames using Selenium
 for i, mod in enumerate(MODS):
     ticker = f"[{i+1}/{len(MODS)}]" # For showing which mod we're on
 
@@ -52,11 +52,17 @@ for i, mod in enumerate(MODS):
     modFilenames.append(filename)
 
 # We're going to need requests after this (because downloading in Selenium isn't supported)
+print("Quitting Selenium...")
 wd.quit()
 
-#for i, link in enumerate(downloadIDs):
-#    ticker = f"[{i+1}/{len(downloadIDs)}]" # For showing which mod we're on (again)
-#
-#    print(f"{ticker} Starting download of mod {MODS[i]}...")
-#    wd.get(link)
-#    print(f"{ticker} Finished downloading mod {MODS[i]}!")
+# Download files using requests
+for i, id in enumerate(downloadIDs):
+    ticker = f"[{i+1}/{len(downloadIDs)}]" # For showing which mod we're on (again)
+    print(f"{ticker} Starting download of mod {MODS[i]}...")
+    link = "https://edge.forgecdn.net/files/" + re.sub(r"(.{4})", r"\1/", id) + "/" + modFilenames[i]
+    print(link)
+    download = rq.get(link) # Add a slash after the first four numbers in the id
+    assert download.status_code == 200
+    with open(modFilenames[i], "wb") as f:
+        f.write(download.content)
+    print(f"{ticker} Finished downloading mod {MODS[i]}!")
