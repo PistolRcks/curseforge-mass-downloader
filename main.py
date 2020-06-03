@@ -1,6 +1,7 @@
 # Scrapes the Curse Forge website to download mods from a list--from CLI
 import re
 import sys
+import os
 from selenium import webdriver
 import requests as rq
 from bs4 import BeautifulSoup as bs
@@ -8,7 +9,7 @@ from bs4 import BeautifulSoup as bs
 # TODO: Will use command line arguments (later)
 GAME = "minecraft" # Name of the game, as is shown in the address
 CONTENT_TYPE = "mc-mods" # Name of the content, as is shown in the address
-MODS = ["chisel"] # Name of the mod(s), as is shown in the address
+MODS = ["chisel", "baubles", "appleskin", "iron-chests"] # Name of the mod(s), as is shown in the address
 VERSION = "1.12.2" # Name of the game version
 
 downloadIDs = []
@@ -55,14 +56,22 @@ for i, mod in enumerate(MODS):
 print("Quitting Selenium...")
 wd.quit()
 
+# Put mods into folder called `mods`
+if not os.path.isdir("mods"):
+    os.mkdir("mods")
+
 # Download files using requests
 for i, id in enumerate(downloadIDs):
     ticker = f"[{i+1}/{len(downloadIDs)}]" # For showing which mod we're on (again)
-    print(f"{ticker} Starting download of mod {MODS[i]}...")
-    link = "https://edge.forgecdn.net/files/" + re.sub(r"(.{4})", r"\1/", id) + "/" + modFilenames[i]
-    print(link)
-    download = rq.get(link) # Add a slash after the first four numbers in the id
-    assert download.status_code == 200
-    with open(modFilenames[i], "wb") as f:
-        f.write(download.content)
-    print(f"{ticker} Finished downloading mod {MODS[i]}!")
+    if os.path.isfile("mods/" + modFilenames[i]): # Don't redownload mods we may already have downloaded
+        print(f"{ticker} Mod {MODS[i]} already downloaded! Skipping.")
+    else:
+        print(f"{ticker} Starting download of mod {MODS[i]}...")
+        link = "https://edge.forgecdn.net/files/" + re.sub(r"(.{4})", r"\1/", id) + "/" + modFilenames[i] # Add a slash after the first four numbers in the id
+        download = rq.get(link)
+        assert download.status_code == 200 # Make sure we're good
+        with open("mods/" + modFilenames[i], "wb") as f:
+            f.write(download.content)
+        print(f"{ticker} Finished downloading mod {MODS[i]}!")
+
+print("Finished downloading all mods!")
