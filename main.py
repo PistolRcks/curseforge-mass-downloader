@@ -2,6 +2,9 @@
 import sys
 import re
 from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 from bs4 import BeautifulSoup as bs
 
 # TODO: Will use command line arguments (later)
@@ -14,17 +17,16 @@ downloadURLs = []
 versionID = ""
 
 # Load up Firefox using Selenium
-global wd
 wd = webdriver.Firefox()
 
 # Scrape for download URLs
 for mod in MODS:
+    global page
     baseURL = ""
     if versionID != "": baseURL = "https://curseforge.com/" + GAME + "/" + CONTENT_TYPE + "/" + mod + "/files/all?filter-game-version=" + versionID
     else: baseURL = "https://curseforge.com/" + GAME + "/" + CONTENT_TYPE + "/" + mod + "/files/all"
     print(f"Loading page for mod name {mod}...")
-    page = wd.get(baseURL)
-    wd.implicitly_wait(100) # Have to implicitly wait or else it's a no-no
+    wd.get(baseURL)
     print("Initializing BeautifulSoup...")
     soup = bs(wd.page_source, 'html.parser')
     print("Found mod " + soup.find("h2", class_="font-bold text-lg break-all").string)
@@ -34,9 +36,11 @@ for mod in MODS:
         versionSelector = soup.find("select")
         versionID = re.sub(r":", r"%3A", versionSelector.find("option", text = re.compile(VERSION))["value"]) # Get the ID (and fix it up so it works)
         print(f"Found version ID {versionID}, reloading page")
-        page = wd.get(baseURL + "?filter-game-version=" + versionID)
-        print(page) # Returns None. Why?
+        wd.get(baseURL + "?filter-game-version=" + versionID)
+        soup = bs(wd.page_source, 'html.parser')
 
-    dl = page.find("a", class_="button button--hollow mr-2 button--icon-only")["href"] + "/file"
+    dl = soup.find("a", class_="button button--hollow mr-2 button--icon-only")["href"] + "/file"
     print(f"Found download link {dl}")
     downloadURLs.append(dl)
+
+wd.quit()
