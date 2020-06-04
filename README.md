@@ -17,4 +17,4 @@ python main.py
 (currently there are no commandline options; this will be fleshed out later)
 
 ## Addendum
-Yes, I do realize that Twitch does have an API for this. I sadly found that out right at the end of when I got it to work. I'll change it later, because the current webscraping method is slow (then I can remove the Selenium and geckodriver requirements).
+This branch is slow, and the main idea was to download modpacks from CurseForge. The CurseProxy API is faster at this, so it will be used from now on. This branch remains for archival purposes, and may or may not be updated.
