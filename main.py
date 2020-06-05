@@ -3,11 +3,31 @@ import re
 import os
 import requests as rq
 import json
+import sys
 
-# TODO: Will use command line arguments (later)
-PROJECT_IDS = ["235279", "227083", "248787", "228756"] # Project IDs of the mods, as shown on the mod page
-VERSION = "1.12.2" # Name of the game version
 
+# Load project IDs and version number
+manifest = ""
+# Make sure the manifest file was given
+# See https://github.com/PistolRcks/curseforge-mass-downloader/wiki/Structuring-manifest.json for more info
+try: assert sys.argv[1]
+except:
+    print("Manifest file not provided. Please provide a modlist in .json format.\nSee https://github.com/PistolRcks/curseforge-mass-downloader/wiki/Structuring-manifest.json for more info.")
+    sys.exit()
+# Make sure the manifest file exists and is a json file
+try: assert os.path.isfile(sys.argv[1]) and not re.search(r"\.json$", sys.argv[1]) == None
+except:
+    print(f"Manifest file {sys.argv[1]} does not exist and/or is not in .json format. Please provide a modlist in .json format.\nSee https://github.com/PistolRcks/curseforge-mass-downloader/wiki/Structuring-manifest.json for more info.")
+    sys.exit()
+# Open the thing
+with open(sys.argv[1], "r") as f:
+    manifest = json.load(f)
+
+PROJECT_IDS = [file["projectID"] for file in manifest["files"]] # Project IDs of the mods, as shown on the mod page
+VERSION = manifest["minecraft"]["version"] # Name of the game version
+
+
+# Download mods
 for i, id in enumerate(PROJECT_IDS):
     ticker = f"[{i+1}/{len(PROJECT_IDS)}]" # For showing which mod we're on
 
