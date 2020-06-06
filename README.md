@@ -1,4 +1,4 @@
-# CurseForge Webscraper
+# CurseForge Mass Downloader
 *A Python script to download Minecraft mods from the CurseForge website using the [CurseProxy API](https://github.com/NikkyAI/CurseProxy)*
 
 ## Dependencies
