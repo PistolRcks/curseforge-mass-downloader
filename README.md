@@ -7,10 +7,11 @@
 
 ## Usage
 ```
-python main.py
+python main.py [modlist-manifest]
 ```
-(currently there are no commandline options; this will be fleshed out later)
+* `modlist-manifest` - "manifest.json" file found in a CurseForge modpack .zip file. You can make your own by following [the file's  (ongoing) documentation.](https://github.com/PistolRcks/curseforge-mass-downloader/wiki/Structuring-manifest.json)
 
 ## TODO
-* Modpack/Modlist support
 * Dependency resolution
+* Modloaders other than forge
+* Auto-installation
