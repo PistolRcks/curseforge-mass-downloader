@@ -26,7 +26,17 @@ with open(sys.argv[1], "r") as f:
 PROJECT_IDS = [file["projectID"] for file in manifest["files"]] # Project IDs of the mods, as shown on the mod page
 VERSION = manifest["minecraft"]["version"] # Name of the game version
 
+# TODO: Allow for other modloaders
+# Download Forge installer
+# Get the first primary Forge version, and extract the version number
+FORGE_VERSION = re.sub(r"forge-", "", [version["id"] for version in manifest["minecraft"]["modLoaders"] if version["primary"]][0])
+print(f"Getting Forge version {FORGE_VERSION}...")
+modloader = rq.get(f"https://files.minecraftforge.net/maven/net/minecraftforge/forge/{VERSION}-{FORGE_VERSION}/forge-{VERSION}-{FORGE_VERSION}-installer.jar")
+with open(f"forge-{VERSION}-{FORGE_VERSION}-installer.jar", "wb") as f:
+    f.write(modloader.content)
+print(f"Forge version {FORGE_VERSION} downloaded!")
 
+print("Starting download of mods...")
 # Download mods
 for i, id in enumerate(PROJECT_IDS):
     ticker = f"[{i+1}/{len(PROJECT_IDS)}]" # For showing which mod we're on
