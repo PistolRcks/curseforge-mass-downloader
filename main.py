@@ -46,8 +46,14 @@ except:
 with open(sys.argv[1], "r") as f:
     manifest = json.load(f)
 
+FILE_IDS = [file["fileID"] for file in manifest["files"]]
 PROJECT_IDS = [file["projectID"] for file in manifest["files"]] # Project IDs of the mods, as shown on the mod page
 VERSION = manifest["minecraft"]["version"] # Name of the game version
+
+# Create the mods folder if we don't already have it
+if not os.path.isdir("mods"):
+    os.mkdir("mods")
+
 
 # TODO: Allow for other modloaders
 # Download Forge installer
@@ -60,7 +66,7 @@ with open(f"forge-{VERSION}-{FORGE_VERSION}-installer.jar", "wb") as f:
 print(f"Forge version {FORGE_VERSION} downloaded!")
 
 print("Starting download of mods...")
-# Download mods
+# Download mods (should be the same length as the file ids
 for i, id in enumerate(PROJECT_IDS):
     ticker = f"[{i+1}/{len(PROJECT_IDS)}]" # For showing which mod we're on
 
@@ -71,19 +77,30 @@ for i, id in enumerate(PROJECT_IDS):
     # Get mod's latest version for this game version
     print(f"{ticker} Getting mod download link for mod {modName} (ID: {id})...")
     data = json.loads(rq.get(f"https://curse.nikky.moe/api/addon/{id}/files").content)
-    # Get the latest mod version which supports the game version (which is last in the list)
-    latestVersion = [candidate for candidate in data if VERSION in candidate["gameVersion"]][-1]
-    print(f"{ticker} Found latest mod version for mod {modName} (ID: {id})!")
-
+    # Get the correct version matching the file ID for this mod
+    correctVersion = {}
+    try:
+        correctVersion = [candidate for candidate in data if FILE_IDS[i] == candidate["id"]][0]
+        print(f"{ticker} Found correct mod version (File ID: {FILE_IDS[i]} for mod {modName} (ID: {id})!")
+    except:
+        print(f"{ticker} Couldn't find a matching file ID ({FILE_IDS[i]}) for mod {modName} (ID: {id}). Downloading latest version for the current forge version...")
+        correctVersion = [candidate for candidate in data if VERSION == candidate["gameVersion"][0]]
+    
+    
+    
     # Download the mod
-    if os.path.isfile("mods/" + latestVersion["fileName"]): # Don't redownload mods we may already have downloaded
-        print(f"{ticker} Mod {modName} (ID: {id}) already downloaded! Skipping.")
-    else:
-        print(f"{ticker} Starting download of mod {modName} (ID: {id})...")
-        download = rq.get(latestVersion["downloadUrl"])
-        assert download.status_code == 200 # Make sure we're good
-        with open("mods/" + latestVersion["fileName"], "wb") as f:
-            f.write(download.content)
-        print(f"{ticker} Finished downloading mod {modName} (ID: {id})!")
+    try:
+        if os.path.isfile("mods/" + correctVersion["fileName"]): # Don't redownload mods we may already have downloaded
+            print(f"{ticker} Mod {modName} (ID: {id}) already downloaded! Skipping.")
+        else:
+            print(f"{ticker} Starting download of mod {modName} (ID: {id})...")
+            download = rq.get(correctVersion["downloadUrl"])
+            assert download.status_code == 200 # Make sure we're good
+            with open("mods/" + correctVersion["fileName"], "wb") as f:
+                f.write(download.content)
+            print(f"{ticker} Finished downloading mod {modName} (ID: {id})!")
+    except: # The fileID isn't available
+        print(f"{ticker} [ERROR] Couldn't download mod {modName} (ID: {id})! The mod's fileID contained within the manifest does not exist, and there exists no mod download compatible with your Minecraft version. Please contact the modpack maintainer for more info.\nQuitting.")
+        sys.exit()
 
 print(f"Finished downloading all {len(PROJECT_IDS)} mods!")

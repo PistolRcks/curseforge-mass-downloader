@@ -1,6 +1,11 @@
 # CurseForge Mass Downloader
 *A Python script to download Minecraft mods from the CurseForge website using the [CurseProxy API](https://github.com/NikkyAI/CurseProxy)*
 
+# Nota Bene
+***PLEASE DO NOT USE THIS FOR ACTUALLY DOWNLOADING MODPACKS. PLEASE USE THE EXCELLENT [MultiMC](https://multimc.org/) IF YOU LEGITIMATELY DO NOT WANT TO USE THE CURSEFORGE LAUNCHER.***
+
+This was more of a personal project for me, and I made this before I realized MultiMC exists.
+
 ## Dependencies
 * Python 3.6 or above
 * [Requests](https://pypi.org/project/requests/)
